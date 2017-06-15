@@ -91,7 +91,7 @@ c = 343;
     
 Inc = 128;   
 hwt = waitbar(0,'general poster filter');
-%   Wienerpost-filtertransferfunction
+%   Wiener post-filter transfer function
 %           Pss
 %   h = -------------
 %       Pss  +  Pnn
