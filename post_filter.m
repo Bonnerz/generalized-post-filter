@@ -31,6 +31,9 @@ pathname = '../sound/';
 N = 7;
 %use a clean speech audio as desired signal
 [speech ,fs] = audioread([pathname,'speech.wav']);
+%scale source signal to obtain 0 dB input SNR    
+speech = speech(1:length(noise0))/2;   
+
 % [speech ,fs] = audioread([pathname,'1KHz_16000.wav']);
 s = repmat(speech,1,N);
 
@@ -49,6 +52,9 @@ x = s(1:length(noise0),:)/2+noise;
 % DS output
 DS = sum(x,2)/N;  
 
+% compute input SNR
+noiseDS = sum(noise,2);
+SNR_input = 10*log10(sum(speech.^2)/sum(noiseDS.^2))
 
 
 %% 
@@ -70,7 +76,8 @@ Pss = zeros(1,P_len);
 Pss_e = zeros((N*N-N)/2,P_len);
 
 z = zeros(1,length(x(:,1)));
-
+znoise = zeros(1,length(x(:,1)));
+zspeech = zeros(1,length(x(:,1)));
 t = 1;
 %%
 tic
@@ -147,9 +154,26 @@ for p = 1:Inc:length(x(:,1))-L
     
     % keep the signal
     z(p:p+L-1) = z(p:p+L-1) + s_est;
+    
+    
+    % perform the same operation to noise and desired signal in order to calculate overall
+    % SNR_output,if on need to observe SNR,comment this section
+    XnoiseDS = fft(noiseDS(p:p+L-1)'.*window');
+    noiseDS_filtered = W.*(XnoiseDS);
+    iNoise = ifft(noiseDS_filtered);
+    znoise(p:p+L-1) = znoise(p:p+L-1) + iNoise(1:L);
+    
+    Xspeech = fft(speech(p:p+L-1)'.*window');
+    speech_filtered = W.*(Xspeech);
+    iSpeech = ifft(speech_filtered);
+    zspeech(p:p+L-1) = zspeech(p:p+L-1) + iSpeech(1:L);
+
     waitbar(p/(length(x(:,1))));
 end
 close(hwt);
+
+% compute output SNR
+SNR_output = 10*log10(sum(zspeech.^2)/sum(znoise.^2))
 toc
 
 
