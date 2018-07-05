@@ -15,7 +15,7 @@ c = 340; % speed of sound
 
 
 %% load recorded office noise audio
-noisepath = '../sound/noise/';
+noisepath = 'sound/noise/';
 [noise3,fs] = audioread([noisepath,'“ÙπÏ-4.wav']);
 noise0 = audioread([noisepath,'“ÙπÏ.wav']);
 noise6 = audioread([noisepath,'“ÙπÏ-7.wav']);
@@ -27,7 +27,7 @@ noise = [noise0,noise1,noise2,noise3,noise4,noise5,noise6];
 
 %% 
 
-pathname = '../sound/';
+pathname = 'sound/';
 N = 7;
 %use a clean speech audio as desired signal
 [speech ,fs] = audioread([pathname,'speech.wav']);
