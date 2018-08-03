@@ -1,4 +1,6 @@
 close all
+clear all
+
 noisepath = 'sound/noise/';
 [noise3,fs] = audioread([noisepath,'“ÙπÏ-4.wav']);
 noise0 = audioread([noisepath,'“ÙπÏ.wav']);
@@ -19,17 +21,19 @@ k = 2.8;
 msc12 = P12./sqrt((P11.*P22));
 
 % find optimal k
+f = 0:fs/256:fs/2;
+c = 340;
 E0 = 100;
 k_optimal = 0;
-for k = 0.5:0.05:3.5
+for k = 0.5:0.01:1.5
     T = sin(2*pi*f*d*k/c)./(2*pi*f*d*k/c);T(1) = 0.998;
     E = sum((real(msc12)'-T).^2);
     if(E<E0)
         k_optimal = k;
+        E0 = E;
     end
-    E0 = E;
 end
-
+% k_optimal = 0.98;
 T = sin(2*pi*f*d*k_optimal/c)./(2*pi*f*d*k_optimal/c);T(1) = 0.998;
 
 % error
