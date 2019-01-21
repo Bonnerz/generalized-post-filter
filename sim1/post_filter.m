@@ -27,7 +27,7 @@ N = size(noise,2);        %通道数
 pathname = '../sound/';
 
 %use a clean speech audio as desired signal
-[speech ,fs] = audioread([pathname,'speech.wav']);
+[speech ,fs] = audioread([pathname,'an101-mtms-senn3.wav']);
 %scale source signal to obtain 0 dB input SNR     
 noise = noise(1:length(speech),:);
 % [speech ,fs] = audioread([pathname,'1KHz_16000.wav']);
@@ -36,7 +36,7 @@ s = repmat(speech,1,N);
 pathname = '../sound/speech/';
                
 
-%% 模拟阵列接收信号,添加噪声
+%% 
 
 fs = 16000;
 
@@ -85,7 +85,7 @@ r = 0.032;
 dij = [r*sqrt(2),2*r,r*sqrt(2),r*sqrt(2),r*2,r*sqrt(2)];
 
 f = 0:fs/256:fs/2;
-c = 343;
+c = 340;
     
 Inc = 128; 
 k_optimal = 1.0900;
