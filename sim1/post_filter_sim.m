@@ -9,7 +9,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 close all
-clear all;
+% clear all;
 c = 340; % speed of sound
 
 
@@ -66,6 +66,7 @@ Pssnn_pre = ones(1,P_len);
 
 Pxij = zeros((N*N-N)/2,P_len);
 Pxij_pre = ones((N*N-N)/2,P_len);
+Pxij_curr = ones((N*N-N)/2,P_len);
 
 Pss = zeros(1,P_len);
 
@@ -81,15 +82,22 @@ tic
 %respeaker 4MIC array V2.0
 r = 0.032; 
 
+f = 0:fs/256:fs/2;
+w = 2*pi*fs*(0:N_FFT/2)/N_FFT;
+
 % the distance between two microphone
 dij = [r*sqrt(2),2*r,r*sqrt(2),r*sqrt(2),r*2,r*sqrt(2)];
+%diffuse noise coherence function,can be modeled as sin(x)/(x)
+for i =1:length(dij)
+    T = sin(2*pi*f*dij(i)*1/c)./(2*pi*f*dij(i)*1/c);T(1) = 0.998;%T(2) = 0.996;
+end
 
-f = 0:fs/256:fs/2;
+
 c = 343;
 
-alpha = 0.95;
+alpha = 0.92;
 
-w = 2*pi*fs*(0:N_FFT/2)/N_FFT;
+
 Inc = 128; 
 k_optimal = 1;
 hwt = waitbar(0,'general poster filter');
@@ -102,10 +110,10 @@ for p = 1:Inc:length(x(:,1))-L
     for i = 1:N
         % estimate auto  power spectral density
         Pxii(i,:) = cpsd(x(p:p+L-1,i),x(p:p+L-1,i),hanning(128),64);
-%         Xi = fft(x(p:p+N_FFT-1,i).*window);
-%         Xi2 = abs(Xi).^2;
-%         Pxii_curr = Xi2;
-%         Pxii(i,:) = alpha*Pxii_pre(i,:)+(1-alpha)*Pxii_curr(1:N_FFT/2+1).';      
+        Xi = fft(x(p:p+N_FFT-1,i).*window);
+        Pxii_curr = abs(Xi).^2;
+        % 
+        Pxii(i,:) = alpha*Pxii_pre(i,:)+(1-alpha)*Pxii_curr(1:N_FFT/2+1).';      
     end
     Pxii_pre = Pxii;
     Pssnn = sum(Pxii)/N;
@@ -114,15 +122,14 @@ for p = 1:Inc:length(x(:,1))-L
             % estimates the cross powerspectral density,
             % Welch's average method,the window width can make a trade-off between variance and
             % resolution
-%             Xi = fft(x(p:p+N_FFT-1,i).*window).';
-%             Xj = fft(x(p:p+N_FFT-1,j).*window).';
-%             Pxij(t,:) = alpha*Pxij_pre(t,:)+(1-alpha)*Xi.*conj(Xj);
+            Xi = fft(x(p:p+N_FFT-1,i).*window).';
+            Xj = fft(x(p:p+N_FFT-1,j).*window).';
+            Pxij_temp = Xi.*conj(Xj);
+            Pxij_curr(t,:) = Pxij_temp(1:N_FFT/2+1);
+            Pxij(t,:) = alpha*Pxij_pre(t,:)+(1-alpha)*Pxij_curr(t,:);
             
-            Pxij(t,:) = cpsd(x(p:p+L-1,i),x(p:p+L-1,j),hanning(128),64);
-            
-            %diffuse noise coherence function,can be modeled as sin(x)/(x)
-            T = sin(2*pi*f*dij(t)*1/c)./(2*pi*f*dij(t)*1/c);T(1) = 0.998;%T(2) = 0.996;
-           
+%             Pxij(t,:) = cpsd(x(p:p+L-1,i),x(p:p+L-1,j),hanning(128),64);
+                     
             % estimate source signal's PSD
             Pss_e(t,:) = (real(Pxij(t,:)) - 0.5*real(T).*(Pxii(i,:)+Pxii(j,:)))...
                          ./...
