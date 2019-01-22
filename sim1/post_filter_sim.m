@@ -88,15 +88,35 @@ w = 2*pi*fs*(0:N_FFT/2)/N_FFT;
 % the distance between two microphone
 dij = [r*sqrt(2),2*r,r*sqrt(2),r*sqrt(2),r*2,r*sqrt(2)];
 %diffuse noise coherence function,can be modeled as sin(x)/(x)
+Fvv = zeros(length(dij),N_FFT/2+1);
 for i =1:length(dij)
-    T = sin(2*pi*f*dij(i)*1/c)./(2*pi*f*dij(i)*1/c);T(1) = 0.998;%T(2) = 0.996;
+    Fvv(i,:) = sin(2*pi*f*dij(i)*1/c)./(2*pi*f*dij(i)*1/c);Fvv(:,1) = 0.998;%T(2) = 0.996;
 end
 
+% M = N;
+% Fvv = zeros(N_FFT/2+1,M,M);
+% for i = 1:M
+%     for j = 1:M   
+%         if i == j
+%             Fvv(:,i,j) = ones(N_FFT/2+1,1);
+%         else
+%             if(abs(i-j)==1)
+%                 dij = r;
+%             elseif(abs(i-j)==2)
+%                 dij = r*sqrt(r);
+%             elseif(abs(i-j)==3)
+%                 dij=r*2;
+%             end
+%             Fvv(:,i,j) = sin(2*pi*f*dij*1/c)./(2*pi*f*dij*1/c);%T(1) = 0.999;%T(2) = 0.996;
+%         end
+%     end
+% end
 
 c = 343;
 
 alpha = 0.92;
 
+d = [1 1 1 1];
 
 Inc = 128; 
 k_optimal = 1;
@@ -131,9 +151,9 @@ for p = 1:Inc:length(x(:,1))-L
 %             Pxij(t,:) = cpsd(x(p:p+L-1,i),x(p:p+L-1,j),hanning(128),64);
                      
             % estimate source signal's PSD
-            Pss_e(t,:) = (real(Pxij(t,:)) - 0.5*real(T).*(Pxii(i,:)+Pxii(j,:)))...
+            Pss_e(t,:) = (real(Pxij(t,:)) - 0.5*real(Fvv(t,:)).*(Pxii(i,:)+Pxii(j,:)))...
                          ./...
-                         (ones(1,P_len) - real(T));
+                         (ones(1,P_len) - real(Fvv(t,:)));
              t = t+1;
         end
     end
@@ -156,6 +176,7 @@ for p = 1:Inc:length(x(:,1))-L
     W = [W_e,conj(fliplr(W_e(2:128)))];
     % transfor the signal to frequency domain
     Xds = fft([DS(p:p+N_FFT-1)'].*window');
+    
     
     % filter the signal 
     DS_filtered = W.*(Xds);
