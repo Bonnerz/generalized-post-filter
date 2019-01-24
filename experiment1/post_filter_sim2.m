@@ -33,8 +33,10 @@ pathname = '../sound/';
 pathname = '../sound/speech/';
                
 %% use RIR to generate reverberation output
+% array spacing
 d = 0.05;
-angle = [90 0]/180*pi;          % source direction [0,180]
+r = d; 
+angle = [0 0]/180*pi;          % source direction [0,180]
 [x1,y1,z1]=sph2cart(angle(1),angle(2),0.7);    % source position 1
 source_pos = [x1,y1,z1];              % Source position [x y z] (m)
 
@@ -45,6 +47,14 @@ scale = 10;
 h = RIR_generator( source_pos,0.42);
 h = h*scale;
 h = h(:,1:1024);
+% [ma,index]=max(h');
+% h1 = zeros(size(h));
+% for i = 1:size(h,1)
+%     h1(i,i*2) = 1;
+% end
+% h = h1;
+% r = 2*c/fs;
+
 
 x1 = conv(speech,h(1,:));
 x2 = conv(speech,h(2,:));
@@ -97,20 +107,22 @@ t = 1;
 %%
 tic
 
-% array spacing
-r = 0.05; 
-
 f = 0:fs/256:fs/2;
 w = 2*pi*fs*(0:N_FFT/2)/N_FFT;
 
 M = N;
 
-alpha = 0.3;
+alpha = 0.78;
 
-% fixed wideband MVDR using pre-defined noise cross-spectral matrix
-[ MVDR_out, x1,H,DI,Fvv] = superdirectiveMVDR_ULA(x,fs,N_FFT,N_FFT,N_FFT/2,r,angle(1)-90/180*pi);
+%% Frequency domain delay-sum,time alignment
+[ DelaySumOut, x] = DelaySumULA(x,fs,N_FFT,N_FFT,N_FFT/2,r,angle(1));
+
+%% fixed wideband MVDR using pre-defined noise cross-spectral matrix
+[ MVDR_out, x1,H,DI,Fvv] = superdirectiveMVDR_ULA(x,fs,N_FFT,N_FFT,N_FFT/2,r,90/180*pi);
 DS = MVDR_out;
 % [sc,F]=mycohere(x1(:,1),x1(:,2),256,fs,hanning(256),0.75*256);
+
+%%
 Inc = 128; 
 k_optimal = 1;
 hwt = waitbar(0,'general poster filter');

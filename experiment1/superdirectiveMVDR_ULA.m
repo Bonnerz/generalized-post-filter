@@ -9,7 +9,7 @@ function [ DS, x1,H,DI,Fvv] = superdirectiveMVDR_ULA( x,fs,N,frameLength,inc,r,a
 %frameLength : frame length,usually same as N
 %        inc : step increment
 %          d : array element spacing
-%      angle : incident angle,[-90,90]
+%      angle : incident angle,[0,180]
 %
 %     output :
 %         DS : delay-sum output
@@ -23,9 +23,9 @@ Nele = size(x,2);
 omega = zeros(frameLength,1);
 H = ones(N/2+1,Nele)';
 
-theta = angle*pi/180; % 方位角 -90 < angle <90
+theta = angle;%*pi/180; % 方位角 0 < angle <180,attention for pi
 
-tao = r*sin(theta)*[0:Nele-1]/c;     %
+tao = r*cos(theta)*[0:Nele-1]/c;     %
 
 yds = zeros(length(x(:,1)),1);
 x1 = zeros(size(x));
@@ -35,13 +35,14 @@ M = Nele;
 N_FFT = N;
 f = 0:fs/256:fs/2;
 Fvv = zeros(N_FFT/2+1,M,M);
+k_optimal = 1;%1.7;
 for i = 1:M
     for j = 1:M   
         if i == j
             Fvv(:,i,j) = ones(N_FFT/2+1,1);
         else
             dij = r*abs(i-j);
-            Fvv(:,i,j) = sin(2*pi*f*dij*1/c)./(2*pi*f*dij*1/c);Fvv(1,i,j) = 0.998;%T(2) = 0.996;
+            Fvv(:,i,j) = sin(2*pi*f*dij*k_optimal/c)./(2*pi*f*dij*k_optimal/c);Fvv(1,i,j) = 0.998;%T(2) = 0.996;
         end
     end
 end
@@ -49,7 +50,7 @@ end
 
 for k = 1:N/2+1
 %         inv_Fvv = inv(squeeze(Fvv(k,:,:)));
-        omega(k) = 2*pi*k*fs/N;    
+        omega(k) = 2*pi*(k-1)*fs/N;    
         
         % 方向向量
         d = exp(-1j*omega(k)*tao');
@@ -64,7 +65,7 @@ for k = 1:N/2+1
         if(1)%k~=31&&k~=20&&k~=16)
         H(:,k) =    Fvv_k\d ...
                  ./(d'/Fvv_k*d);
-       H(:,k) =   d'/M; % DS weights
+%        H(:,k) =   d'/M; % DS weights
         DI(k) = (abs(H(:,k)'*d))^2 ...
                 /(H(:,k)'*squeeze(Fvv(k,:,:))*H(:,k));
         else
