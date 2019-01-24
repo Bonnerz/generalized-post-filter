@@ -14,7 +14,7 @@
 %  "Microphone Array Post-Filter Based on Noise Field Coherence" IEEE 2003
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-close all
+% close all
 % clear all;
 c = 340; % speed of sound
 
@@ -34,13 +34,17 @@ pathname = '../sound/speech/';
                
 %% use RIR to generate reverberation output
 d = 0.05;
-source_pos = [2-d*2 1.5+0.7 2];              % Source position [x y z] (m)
+angle = [90 0]/180*pi;          % source direction [0,180]
+[x1,y1,z1]=sph2cart(angle(1),angle(2),0.7);    % source position 1
+source_pos = [x1,y1,z1];              % Source position [x y z] (m)
+
+%source_pos = [2-d*2 1.5+0.7 2];              % Source position [x y z] (m)
 
 scale = 10;
 
 h = RIR_generator( source_pos,0.42);
 h = h*scale;
-h = h(:,1:2048);
+h = h(:,1:1024);
 
 x1 = conv(speech,h(1,:));
 x2 = conv(speech,h(2,:));
@@ -104,8 +108,9 @@ M = N;
 alpha = 0.3;
 
 % fixed wideband MVDR using pre-defined noise cross-spectral matrix
-[ MVDR_out, x1,H,DI,Fvv] = superdirectiveMVDR_ULA(x,fs,N_FFT,N_FFT,N_FFT/2,r,0);
+[ MVDR_out, x1,H,DI,Fvv] = superdirectiveMVDR_ULA(x,fs,N_FFT,N_FFT,N_FFT/2,r,angle(1)-90/180*pi);
 DS = MVDR_out;
+% [sc,F]=mycohere(x1(:,1),x1(:,2),256,fs,hanning(256),0.75*256);
 Inc = 128; 
 k_optimal = 1;
 hwt = waitbar(0,'general poster filter');

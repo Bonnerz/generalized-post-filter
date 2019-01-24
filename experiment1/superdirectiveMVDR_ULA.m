@@ -9,7 +9,7 @@ function [ DS, x1,H,DI,Fvv] = superdirectiveMVDR_ULA( x,fs,N,frameLength,inc,r,a
 %frameLength : frame length,usually same as N
 %        inc : step increment
 %          d : array element spacing
-%      angle : incident angle
+%      angle : incident angle,[-90,90]
 %
 %     output :
 %         DS : delay-sum output
@@ -23,9 +23,9 @@ Nele = size(x,2);
 omega = zeros(frameLength,1);
 H = ones(N/2+1,Nele)';
 
-theta = angle*pi/180; %固定一个俯仰角
+theta = angle*pi/180; % 方位角 -90 < angle <90
 
-tao = r*sin(theta)*[0:Nele-1]/c;     %方位角 0 < angle <360
+tao = r*sin(theta)*[0:Nele-1]/c;     %
 
 yds = zeros(length(x(:,1)),1);
 x1 = zeros(size(x));
@@ -64,7 +64,7 @@ for k = 1:N/2+1
         if(1)%k~=31&&k~=20&&k~=16)
         H(:,k) =    Fvv_k\d ...
                  ./(d'/Fvv_k*d);
-%        H(:,k) =   1; % DS weights
+       H(:,k) =   d'/M; % DS weights
         DI(k) = (abs(H(:,k)'*d))^2 ...
                 /(H(:,k)'*squeeze(Fvv(k,:,:))*H(:,k));
         else
@@ -89,8 +89,9 @@ for i = 1:inc:length(x(:,1))-frameLength
     xf  = [x_fft;conj(flipud(x_fft(2:N/2,:)))];
     x1(i:i+frameLength-1,:) = x1(i:i+frameLength-1,:)+(ifft(xf));
 end
-DS = real(yds);  
-% DI = pow2db(abs(DI));
+DS = real(yds); 
+x1 = real(x1);
+DI = pow2db(abs(DI));
 
 end
 
