@@ -67,7 +67,7 @@ w = 2*pi*fs*(0:N_FFT/2)/N_FFT;
 
 M = N;
 
-alpha = 0.9;
+alpha = 0.92;
 
 %% Frequency domain delay-sum,time alignment
 [ DelaySumOut, x] = DelaySumURA(x,fs,N_FFT,N_FFT,N_FFT/2,r,angle);
@@ -146,6 +146,6 @@ for p = 1:Inc:length(x(:,1))-N_FFT
 end
 close(hwt);
 toc
-z = z/max(abs(z));
+% z = z/max(abs(z));
 
 

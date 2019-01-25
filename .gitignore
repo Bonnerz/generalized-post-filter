@@ -1,4 +1,4 @@
-##ignore this file##
+ ##ignore this file##
 
 EventDetector/bin/EventDetector
 
@@ -65,3 +65,5 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+output/

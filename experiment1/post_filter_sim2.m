@@ -112,7 +112,7 @@ w = 2*pi*fs*(0:N_FFT/2)/N_FFT;
 
 M = N;
 
-alpha = 0.78;
+alpha = 0.98;
 
 %% Frequency domain delay-sum,time alignment
 [ DelaySumOut, x] = DelaySumULA(x,fs,N_FFT,N_FFT,N_FFT/2,r,angle(1));

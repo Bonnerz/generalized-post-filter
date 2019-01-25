@@ -35,7 +35,7 @@ M = Nele;
 N_FFT = N;
 f = 0:fs/256:fs/2;
 Fvv = zeros(N_FFT/2+1,M,M);
-k_optimal = 4;
+k_optimal = 20;
 for i = 1:M
     for j = 1:M   
         if i == j
